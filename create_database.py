@@ -7,7 +7,7 @@ from typing import List
 import argparse
 import os
 import shutil
-
+import time
 
 DATA_PATH ="data"
 CHROMA_PATH = "chroma"
@@ -22,7 +22,12 @@ def main():
 
     documents = load_data()
     chunks = split_text(documents)
+
+    start = time.time()
     save_to_database(chunks)
+    end = time.time()
+    print(f"Tiempo en responder: {end - start:.2f} segundos")
+
 
 def load_data():
     loader = DirectoryLoader(DATA_PATH,glob="*.pdf")
@@ -57,7 +62,7 @@ def save_to_database(chunks: List[Document]):
     print(f"Numero de archivos en la base de datos: {len(existing_items)}")
 
     new_chunks = []
-    for chunk in chunks:
+    for chunk in chunks_with_ids:
         if chunk.metadata["id"] not in existing_items_id:
             new_chunks.append(chunk)
 
@@ -77,8 +82,9 @@ def calculate_chunks_ids(chunks: List[Document]):
 
     for chunk in chunks:
         source_file = chunk.metadata.get("source")
-        current_page = chunk.metadata.get("page")
-        current_page_id = f"{source_file}:{current_page}"
+        page = chunk.metadata.get("page")
+        print(page)
+        current_page_id = f"{source_file}:{page}"
 
         if(current_page_id == last_page_id):
             current_index += 1
